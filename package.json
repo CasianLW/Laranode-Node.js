@@ -1,0 +1,15 @@
+{
+  "name": "laranode",
+  "version": "1.0.0",
+  "description": "A Node.js CRUD API for user management without any framework",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "pg": "^8.5.1"
+  }
+}
