@@ -12,5 +12,6 @@
     "dotenv": "^8.6.0",
     "pg": "^8.11.3"
   },
+  "type": "module",
   "keywords": []
 }
