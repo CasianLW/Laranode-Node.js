@@ -1,12 +1,17 @@
 import dotenv from "dotenv";
 import http from "http";
+import setupRoutes from "./routes/index.js";
 
 dotenv.config();
 
 const server = http.createServer((req, res) => {
-  res.writeHead(200, { "Content-Type": "application/json" });
-  res.write(JSON.stringify(JSON.stringify({ message: "Hello World!" })));
-  res.end();
+  setupRoutes({
+    on: (path, handler) => {
+      if (req.url === path) {
+        handler(req, res);
+      }
+    },
+  });
 });
 
 const port = process.env.PORT || 9000;
