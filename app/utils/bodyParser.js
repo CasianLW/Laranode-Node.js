@@ -21,4 +21,4 @@ async function bodyParser(request) {
   });
 }
 
-module.exports = bodyParser;
+export default bodyParser;
