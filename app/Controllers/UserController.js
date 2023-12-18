@@ -1,18 +1,104 @@
-// app/Controllers/UserController.js
+import UserRepository from "../Repository/UserRepository.js";
+import UserValidator from "../Validator/UserValidator.js";
+import bodyParser from "../utils/bodyParser.js";
+
 class UserController {
   constructor(req, res) {
     this.req = req;
     this.res = res;
+    this.userRepository = new UserRepository();
   }
 
-  getUsers() {
-    // Logic to retrieve users
-    this.res.writeHead(200, { "Content-Type": "application/json" });
-    this.res.write(JSON.stringify({ users: [] })); // Replace with actual user data
-    this.res.end();
+  async getUsers() {
+    try {
+      const users = await this.userRepository.getAllUsers();
+      this.res.writeHead(200, { "Content-Type": "application/json" });
+      this.res.write(JSON.stringify(users));
+    } catch (error) {
+      this.res.writeHead(500, { "Content-Type": "application/json" });
+      this.res.write(JSON.stringify({ error: "Internal Server Error" }));
+    } finally {
+      this.res.end();
+    }
   }
 
-  // Other user-related methods
+  async getUser() {
+    try {
+      const userId = this.req.url.split("/")[2]; // Assuming URL format is /users/:id
+      const user = await this.userRepository.getUserById(userId);
+      this.res.writeHead(200, { "Content-Type": "application/json" });
+      this.res.write(JSON.stringify(user));
+    } catch (error) {
+      this.res.writeHead(500, { "Content-Type": "application/json" });
+      this.res.write(JSON.stringify({ error: "Internal Server Error" }));
+    } finally {
+      this.res.end();
+    }
+  }
+
+  async createUser() {
+    try {
+      await bodyParser(this.req);
+      const userData = this.req.body;
+      const validation = UserValidator.validateCreate(userData);
+
+      if (!validation.isValid) {
+        this.res.writeHead(400, { "Content-Type": "application/json" });
+        this.res.end(JSON.stringify({ errors: validation.errors }));
+        return;
+      }
+
+      const user = await this.userRepository.createUser(userData);
+      this.res.writeHead(201, { "Content-Type": "application/json" });
+      this.res.end(JSON.stringify(user));
+    } catch (error) {
+      this.res.writeHead(500, { "Content-Type": "application/json" });
+      this.res.end(JSON.stringify({ error: "Internal Server Error" }));
+    }
+  }
+
+  async updateUser() {
+    try {
+      const userId = this.req.url.split("/")[2];
+      await bodyParser(this.req);
+      const userData = this.req.body;
+
+      const validation = UserValidator.validateUpdate(userData);
+      if (!validation.isValid) {
+        this.res.writeHead(400, { "Content-Type": "application/json" });
+        this.res.end(JSON.stringify({ errors: validation.errors }));
+        return;
+      }
+
+      const updatedUser = await this.userRepository.updateUser(
+        userId,
+        userData
+      );
+      if (!updatedUser) {
+        this.res.writeHead(404, { "Content-Type": "application/json" });
+        this.res.end(JSON.stringify({ error: "User not found" }));
+        return;
+      }
+
+      this.res.writeHead(200, { "Content-Type": "application/json" });
+      this.res.end(JSON.stringify(updatedUser));
+    } catch (error) {
+      this.res.writeHead(500, { "Content-Type": "application/json" });
+      this.res.end(JSON.stringify({ error: "Internal Server Error" }));
+    }
+  }
+
+  async deleteUser() {
+    try {
+      const userId = this.req.url.split("/")[2];
+      await this.userRepository.deleteUser(userId);
+      this.res.writeHead(204);
+      this.res.end();
+    } catch (error) {
+      this.res.writeHead(500, { "Content-Type": "application/json" });
+      this.res.end(JSON.stringify({ error: "Internal Server Error" }));
+    }
+  }
 }
 
 export default UserController;
