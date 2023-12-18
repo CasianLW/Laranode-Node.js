@@ -1,6 +1,6 @@
 import UserRepository from "../Repository/UserRepository.js";
 import UserValidator from "../Validator/UserValidator.js";
-import bodyParser from "../utils/bodyParser.js";
+import bodyParser from "../Utils/BodyParser.js";
 
 class UserController {
   constructor(req, res) {
@@ -12,6 +12,11 @@ class UserController {
   async getUsers() {
     try {
       const users = await this.userRepository.getAllUsers();
+      if (!users) {
+        this.res.writeHead(404, { "Content-Type": "application/json" });
+        this.res.end(JSON.stringify({ error: "Users not found" }));
+        return;
+      }
       this.res.writeHead(200, { "Content-Type": "application/json" });
       this.res.write(JSON.stringify(users));
     } catch (error) {
@@ -26,6 +31,11 @@ class UserController {
     try {
       const userId = this.req.url.split("/")[2]; // Assuming URL format is /users/:id
       const user = await this.userRepository.getUserById(userId);
+      if (!user) {
+        this.res.writeHead(404, { "Content-Type": "application/json" });
+        this.res.end(JSON.stringify({ error: "User not found" }));
+        return;
+      }
       this.res.writeHead(200, { "Content-Type": "application/json" });
       this.res.write(JSON.stringify(user));
     } catch (error) {
@@ -43,7 +53,7 @@ class UserController {
       const validation = UserValidator.validateCreate(userData);
 
       if (!validation.isValid) {
-        this.res.writeHead(400, { "Content-Type": "application/json" });
+        this.res.writeHead(422, { "Content-Type": "application/json" });
         this.res.end(JSON.stringify({ errors: validation.errors }));
         return;
       }
@@ -65,7 +75,7 @@ class UserController {
 
       const validation = UserValidator.validateUpdate(userData);
       if (!validation.isValid) {
-        this.res.writeHead(400, { "Content-Type": "application/json" });
+        this.res.writeHead(422, { "Content-Type": "application/json" });
         this.res.end(JSON.stringify({ errors: validation.errors }));
         return;
       }
@@ -91,6 +101,14 @@ class UserController {
   async deleteUser() {
     try {
       const userId = this.req.url.split("/")[2];
+      const user = await this.userRepository.getUserById(userId);
+
+      if (!user) {
+        this.res.writeHead(404, { "Content-Type": "application/json" });
+        this.res.end(JSON.stringify({ error: "User not found" }));
+        return;
+      }
+
       await this.userRepository.deleteUser(userId);
       this.res.writeHead(204);
       this.res.end();
