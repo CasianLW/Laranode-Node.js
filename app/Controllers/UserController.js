@@ -51,6 +51,11 @@ class UserController {
     try {
       await bodyParser(this.req);
       const userData = this.req.body;
+
+      const now = new Date();
+      userData.created_at = now;
+      userData.updated_at = now;
+
       const validation = UserValidator.validateCreate(userData);
 
       if (!validation.isValid) {
@@ -75,6 +80,8 @@ class UserController {
       const userId = this.req.url.split("/")[2];
       await bodyParser(this.req);
       const userData = this.req.body;
+
+      userData.updated_at = new Date();
 
       const validation = UserValidator.validateUpdate(userData);
       if (!validation.isValid) {
