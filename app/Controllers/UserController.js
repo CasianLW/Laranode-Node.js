@@ -1,6 +1,7 @@
 import UserRepository from "../Repository/UserRepository.js";
 import UserValidator from "../Validator/UserValidator.js";
 import bodyParser from "../Utils/BodyParser.js";
+import bcrypt from "bcrypt";
 
 class UserController {
   constructor(req, res) {
@@ -58,6 +59,8 @@ class UserController {
         return;
       }
 
+      const hashedPassword = await bcrypt.hash(userData.password, 10);
+      userData.password = hashedPassword;
       const user = await this.userRepository.createUser(userData);
       this.res.writeHead(201, { "Content-Type": "application/json" });
       this.res.end(JSON.stringify(user));
@@ -80,6 +83,10 @@ class UserController {
         return;
       }
 
+      if (userData.password) {
+        const hashedPassword = await bcrypt.hash(userData.password, 10);
+        userData.password = hashedPassword;
+      }
       const updatedUser = await this.userRepository.updateUser(
         userId,
         userData
